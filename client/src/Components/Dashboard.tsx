@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import{ useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { jwtDecode } from "jwt-decode";
 import HelpModal from "../model/Helpmodel";
@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css";
 import socket from "../socket/socket";
 
 // Distance Calculation Utility
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+function getDistanceFromLatLonInKm(lat1:any, lon1:any, lat2:any, lon2:any) {
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
@@ -21,23 +21,23 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function deg2rad(deg) {
+function deg2rad(deg:any) {
   return deg * (Math.PI / 180);
 }
 
 function Dashboard() {
-  const [name, setName] = useState("");
-  const [locationInfo, setLocationInfo] = useState(null);
-  const [id, setId] = useState();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [allDrivers, setAllDrivers] = useState([]);
-  const [helpAccepted, setHelpAccepted] = useState(null); // accepted help
+  const [name, setName]:any = useState("");
+  const [locationInfo, setLocationInfo]:any = useState(null);
+  const [id, setId]:any = useState();
+  const [isModalOpen, setIsModalOpen]:any = useState(false);
+  const [allDrivers, setAllDrivers]:any = useState([]);
+  const [helpAccepted, setHelpAccepted]:any = useState(null); // accepted help
 
   const openHelpModal = () => setIsModalOpen(true);
   const closeHelpModal = () => setIsModalOpen(false);
 
-  const handleSend = async (issue) => {
-    const res = await axios.post("http://localhost:3000/api/request/help-request", {
+  const handleSend = async (issue:any) => {
+    const res = await axios.post("https://walmart-xjjd.onrender.com/api/request/help-request", {
       latitude: locationInfo.latitude,
       longitude: locationInfo.longitude,
       requesterId: id,
@@ -54,7 +54,7 @@ function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      const decoded = jwtDecode(token);
+      const decoded:any = jwtDecode(token);
       if (decoded?.name) {
         setName(decoded.name);
         setId(decoded.userid);
@@ -68,9 +68,9 @@ function Dashboard() {
           setLocationInfo({ latitude, longitude });
 
           axios
-            .get("http://localhost:3000/api/drivers")
+            .get("https://walmart-xjjd.onrender.com/api/drivers")
             .then((res) => {
-              const nearbyDrivers = res.data.drivers.filter((driver) =>
+              const nearbyDrivers = res.data.drivers.filter((driver:any) =>
                 getDistanceFromLatLonInKm(
                   latitude,
                   longitude,
@@ -92,7 +92,7 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const handleHelpAccepted = (data) => {
+    const handleHelpAccepted = (data:any) => {
       console.log("Help Accepted:", data);
       setHelpAccepted(data);
     };
@@ -187,12 +187,14 @@ function Dashboard() {
         <div className="w-1/2 h-[500px]">
           {locationInfo && (
             <MapContainer
+            //@ts-ignore
               center={[locationInfo.latitude, locationInfo.longitude]}
               zoom={14}
               scrollWheelZoom={true}
               className="h-full w-full rounded-lg shadow"
             >
               <TileLayer
+                //@ts-ignore
                 attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
@@ -203,7 +205,7 @@ function Dashboard() {
               </Marker>
 
               {/* Nearby Drivers */}
-              {allDrivers.map((driver) => (
+              {allDrivers.map((driver:any) => (
                 <Marker
                   key={driver.id}
                   position={[driver.latitude, driver.longitude]}
@@ -238,6 +240,7 @@ function Dashboard() {
                       helpAccepted.location.longitude,
                     ],
                   ]}
+                  // @ts-ignore
                   color="blue"
                 />
               )}

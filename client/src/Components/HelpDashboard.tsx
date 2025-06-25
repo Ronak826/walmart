@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { jwtDecode } from "jwt-decode";
 import socket from "../socket/socket";
@@ -13,7 +13,7 @@ import {
 import "leaflet/dist/leaflet.css";
 
 // Utility to calculate distance
-function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+function getDistanceFromLatLonInKm(lat1:any, lon1:any, lat2:any, lon2:any) {
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
@@ -25,19 +25,19 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
-function deg2rad(deg) {
+function deg2rad(deg:any) {
   return deg * (Math.PI / 180);
 }
 
 function HelpDashboard() {
   const [helpRequests, setHelpRequests] = useState([]);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [helperLocation, setHelperLocation] = useState(null);
+  const [selectedRequest, setSelectedRequest]:any = useState(null);
+  const [helperLocation, setHelperLocation]:any = useState(null);
   const [helperName, setHelperName] = useState("");
   const [allDrivers, setAllDrivers] = useState([]);
 
   // Hardcoded helper location (for demo/testing)
-  const staticHelperLocation = {
+  const staticHelperLocation:any= {
     latitude: 21.1465,
     longitude: 79.067,
   };
@@ -45,16 +45,16 @@ function HelpDashboard() {
   // Get drivers on load
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/drivers")
+      .get("https://walmart-xjjd.onrender.com/api/drivers")
       .then((res) => setAllDrivers(res.data.drivers))
       .catch((err) => console.error("Failed to fetch drivers", err));
   }, []);
 
   // Listen for new help requests
   useEffect(() => {
-    const handleReceiveHelpRequest = (data) => {
+    const handleReceiveHelpRequest = (data:any) => {
         console.log(data)
-      setHelpRequests((prevRequests) => [data, ...prevRequests]);
+      setHelpRequests((prevRequests):any => [data, ...prevRequests]);
     };
 
     socket.on("receive-help-request", handleReceiveHelpRequest);
@@ -65,12 +65,12 @@ function HelpDashboard() {
   }, []);
 
   // Accept handler
-  const handleAccept = async(helpRequestId) => {
-    const token = localStorage.getItem("token");
-    const decoded = jwtDecode(token);
+  const handleAccept = async(helpRequestId:any) => {
+    const token = localStorage.getItem("token") || "";
+    const decoded:any = jwtDecode(token);
     const helperId = decoded.userid;
     const helperNameFromToken = decoded.name || "Helper";
-    await axios.put(`http://localhost:3000/api/request/help-request/${helpRequestId}/accept`,{
+    await axios.put(`https://walmart-xjjd.onrender.com/api/request/help-request/${helpRequestId}/accept`,{
         helperId
     })
     
@@ -78,20 +78,20 @@ function HelpDashboard() {
 
     socket.emit("accept-help", { helpRequestId, helperId });
 
-    const request = helpRequests.find(
-      (r) => r.helpRequestId === helpRequestId
+    const request:any = helpRequests.find(
+      (r:any) => r.helpRequestId  === helpRequestId
     );
     setSelectedRequest(request);
     setHelperLocation(staticHelperLocation); // use hardcoded location for now
 
     setHelpRequests((prev) =>
-      prev.filter((r) => r.helpRequestId !== helpRequestId)
+      prev.filter((r:any) => r.helpRequestId !== helpRequestId)
     );
   };
 
-  const handleReject = (helpRequestId) => {
+  const handleReject = (helpRequestId:any) => {
     setHelpRequests((prev) =>
-      prev.filter((r) => r.helpRequestId !== helpRequestId)
+      prev.filter((r:any) => r.helpRequestId  !== helpRequestId)
     );
   };
 
@@ -105,7 +105,7 @@ function HelpDashboard() {
           {helpRequests.length === 0 ? (
             <p className="text-gray-500">No help requests yet.</p>
           ) : (
-            helpRequests.map((request, index) => (
+            helpRequests.map((request:any, index) => (
               <div key={index} className="border p-4 rounded-lg shadow mb-4">
                 <div>
                   <strong>Requester:</strong> {request.requesterName}
@@ -148,7 +148,7 @@ function HelpDashboard() {
                 <strong>Helper:</strong> {helperName}
               </p>
               <p>
-                <strong>Requester:</strong> {selectedRequest.requesterName}
+                <strong>Requester:</strong> {(selectedRequest as any).requesterName}
               </p>
               <p>
                 <strong>Distance:</strong>{" "}
@@ -167,18 +167,20 @@ function HelpDashboard() {
         {/* Right side: Map */}
         <div className="w-1/2 h-[600px]">
           <MapContainer
+          //@ts-ignore
             center={[21.118976, 79.0790144]}
             zoom={13}
             scrollWheelZoom={true}
             className="h-full w-full rounded-lg shadow"
           >
             <TileLayer
+            //@ts-ignore
               attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
             {/* Show all driver markers */}
-            {allDrivers.map((driver) => (
+            {allDrivers.map((driver:any) => (
               <Marker
                 key={driver.id}
                 position={[driver.latitude, driver.longitude]}
@@ -222,6 +224,7 @@ function HelpDashboard() {
                     selectedRequest.location.longitude,
                   ],
                 ]}
+                // @ts-ignore
                 color="blue"
               />
             )}

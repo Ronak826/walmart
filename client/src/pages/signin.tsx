@@ -10,7 +10,7 @@ function Signin() {
     e.preventDefault();
 
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/signin', { email });
+      const res = await axios.post('https://walmart-xjjd.onrender.com/api/auth/signin', { email });
 
       localStorage.setItem('token', res.data.token);
       naigate("/")

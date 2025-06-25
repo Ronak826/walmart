@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 
-function HelpModal({ isOpen, onClose, onSend}) {
+function HelpModal({ isOpen, onClose, onSend}:any) {
   const [issue, setIssue] = useState('');
   if (!isOpen) return null;
 
