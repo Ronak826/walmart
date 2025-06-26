@@ -34,6 +34,7 @@ const socketHandler = (io, socket) => {
                 requesterName: helpRequest.requester.name,
                 requesterEmail: helpRequest.requester.email,
                 issue: helpRequest.issue,
+                description: helpRequest.description,
                 location: {
                     latitude: helpRequest.latitude,
                     longitude: helpRequest.longitude,
@@ -70,6 +71,7 @@ const socketHandler = (io, socket) => {
                 requesterId: helpRequest.requester.id,
                 requesterName: helpRequest.requester.name,
                 issue: helpRequest.issue,
+                description: helpRequest.description,
                 location: {
                     latitude: (_c = helpRequest.helper) === null || _c === void 0 ? void 0 : _c.latitude,
                     longitude: (_d = helpRequest.helper) === null || _d === void 0 ? void 0 : _d.longitude,

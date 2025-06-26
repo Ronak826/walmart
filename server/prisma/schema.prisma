@@ -38,7 +38,7 @@ model HelpRequest {
   longitude   Float
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-
+  description String?
   requester   Driver      @relation("DriverRequests", fields: [requesterId], references: [id])
   helper      Driver?     @relation("DriverHelps", fields: [helperId], references: [id])
 }

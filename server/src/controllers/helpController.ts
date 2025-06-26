@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 // Create a new help request
 export const CreateHelp = async (req: any, res: any) => {
-  const { requesterId, issue, latitude, longitude } = req.body;
+  const { requesterId, issue, latitude, longitude,description} = req.body;
   console.log(req.body)
   try {
     const helpRequest = await prisma.helpRequest.create({
@@ -12,6 +12,7 @@ export const CreateHelp = async (req: any, res: any) => {
         issue,
         latitude,
         longitude,
+        description,
       },
     });
 

@@ -27,6 +27,7 @@ export const socketHandler = (io: Server, socket: Socket) => {
         requesterName: helpRequest.requester.name,
         requesterEmail: helpRequest.requester.email,
         issue: helpRequest.issue,
+        description:helpRequest.description,
         location: {
           latitude: helpRequest.latitude,
           longitude: helpRequest.longitude,
@@ -63,6 +64,7 @@ export const socketHandler = (io: Server, socket: Socket) => {
       requesterId: helpRequest.requester.id,
       requesterName: helpRequest.requester.name,
       issue: helpRequest.issue,
+      description:helpRequest.description,
       location: {
         latitude: helpRequest.helper?.latitude,
         longitude: helpRequest.helper?.longitude,

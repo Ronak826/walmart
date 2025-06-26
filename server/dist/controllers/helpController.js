@@ -14,7 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 // Create a new help request
 const CreateHelp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { requesterId, issue, latitude, longitude } = req.body;
+    const { requesterId, issue, latitude, longitude, description } = req.body;
     console.log(req.body);
     try {
         const helpRequest = yield prisma.helpRequest.create({
@@ -23,6 +23,7 @@ const CreateHelp = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 issue,
                 latitude,
                 longitude,
+                description,
             },
         });
         res.status(201).json({ message: "Help request created", helpRequest });

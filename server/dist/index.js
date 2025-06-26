@@ -23,10 +23,11 @@ app.get("/", (req, res) => {
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: 'http://localhost:5173', // ✅ exact Vite dev server origin
+        origin: ['http://localhost:5173', 'https://walmart-five.vercel.app/'], // ✅ exact Vite dev server origin
         methods: ['GET', 'POST'],
         credentials: true
     },
+    transports: ['websocket']
 });
 io.on('connection', (socket) => {
     console.log('Socket connected:', socket.id);

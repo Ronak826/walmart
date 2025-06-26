@@ -1,33 +1,78 @@
+import { useNavigate } from 'react-router-dom';
+import { Car } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom'
+// ✅ Custom Button component using Tailwind CSS
+function Button({ children, onClick, variant = 'default', className = '' }:any) {
+  const baseClasses = 'px-4 py-2 rounded-md font-medium transition';
+  const variants:any = {
+    default: 'bg-blue-600 text-white hover:bg-blue-700',
+    ghost: 'bg-transparent text-blue-600 hover:bg-blue-50',
+  };
 
-function Navbar() {
-    const navigate=useNavigate();
   return (
-    <div className='flex justify-between px-50 pt-5 border border-slate-700 shadow-2xl p-5'>
-        <div className='font-bold text-3xl '>
-            HelpOnRoute
-        </div>
-        {localStorage.getItem("token")?<div>
-            <button onClick={()=>{
-                localStorage.removeItem("token");
-                navigate("/")
-            }} className='border rounded-2xl p-2 bg-red-600 text-white' >Logout</button>
-        </div>:
-        <div>
-        <button className='text-2xl cursor-pointer' onClick={()=>{
-            navigate("/signin")
-        }}>
-            Login
-        </button>
-         <button className='text-2xl cursor-pointer pl-5' onClick={()=>{
-            navigate("/signup")
-         }}>
-            Signup
-        </button>
-        </div>}
-    </div>
-  )
+    <button
+      onClick={onClick}
+      className={`${baseClasses} ${variants[variant] || variants.default} ${className}`}
+    >
+      {children}
+    </button>
+  );
 }
 
-export default Navbar
+// ✅ Navbar component
+function Navbar() {
+  const navigate = useNavigate();
+  const isLoggedIn = localStorage.getItem("token");
+
+  return (
+    <nav className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          
+          {/* Logo and brand name */}
+          <div 
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity" 
+            onClick={() => navigate("/")}
+          >
+            <Car className="h-8 w-8 text-blue-600" />
+            <span className="text-2xl font-bold text-gray-900">HelpOnRoute</span>
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex space-x-4">
+            {isLoggedIn ? (
+              <>
+                <Button variant="ghost" onClick={() => navigate('/help-dashboard')}>
+                  Dashboard
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    navigate("/");
+                  }}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  Sign out
+                </Button>
+              </>
+            ) : (
+              <>
+               
+                <Button variant="ghost" onClick={() => navigate("/signin")}>
+                  Sign in
+                </Button>
+                <Button onClick={() => navigate("/signup")}>
+                  Sign up
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export default Navbar;

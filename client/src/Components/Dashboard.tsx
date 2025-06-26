@@ -1,55 +1,84 @@
-import{ useEffect, useState } from "react";
+// imports
+import { useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { jwtDecode } from "jwt-decode";
 import HelpModal from "../model/Helpmodel";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import socket from "../socket/socket";
 
-// Distance Calculation Utility
-function getDistanceFromLatLonInKm(lat1:any, lon1:any, lat2:any, lon2:any) {
+import "leaflet/dist/leaflet.css";
+
+// 🔁 Fetch road-based route using OpenRouteService
+const getRouteCoordinates = async (from: any, to: any) => {
+  const response = await fetch("https://api.openrouteservice.org/v2/directions/driving-car/geojson", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "5b3ce3597851110001cf62489d93fe0999b74acdbc7f75a2acabdabb", // 🧠 Replace with your actual key
+    },
+    body: JSON.stringify({
+      coordinates: [
+        [from.lng, from.lat],
+        [to.lng, to.lat]
+      ]
+    }),
+  });
+
+  const data = await response.json();
+  return data.features[0].geometry.coordinates.map(([lng, lat]: any) => [lat, lng]);
+};
+
+// 📏 Distance Calculation
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(deg2rad(lat1)) *
-      Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
-
-function deg2rad(deg:any) {
+function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
 function Dashboard() {
-  const [name, setName]:any = useState("");
-  const [locationInfo, setLocationInfo]:any = useState(null);
-  const [id, setId]:any = useState();
-  const [isModalOpen, setIsModalOpen]:any = useState(false);
-  const [allDrivers, setAllDrivers]:any = useState([]);
-  const [helpAccepted, setHelpAccepted]:any = useState(null); // accepted help
-  const [helpSent, setHelpSent]:any = useState(false); // help request sent state
+  const [name, setName]: any = useState("");
+  const [locationInfo, setLocationInfo]: any = useState(null);
+  const [id, setId]: any = useState();
+  const [isModalOpen, setIsModalOpen]: any = useState(false);
+  const [allDrivers, setAllDrivers]: any = useState([]);
+  const [helpAccepted, setHelpAccepted]: any = useState(null);
+  const [helpSent, setHelpSent]: any = useState(false);
+  const [routeCoords, setRouteCoords]: any = useState([]);
+  const [showDrivers, setShowDrivers] = useState(false); // New state for showing drivers
+
+  // Demo drivers data
+  const demoDrivers = [
+    { name: "Ritesh", phone: "8265097155" },
+    { name: "Jayesh K", phone: "8767955108" }
+  ];
 
   const openHelpModal = () => setIsModalOpen(true);
   const closeHelpModal = () => setIsModalOpen(false);
+  const toggleDrivers = () => setShowDrivers(!showDrivers);
 
-  const handleSend = async (issue:any) => {
+  const handleSend = async ({issue,description}:any) => {
+    console.log(description)
     try {
       const res = await axios.post("https://walmart-xjjd.onrender.com/api/request/help-request", {
         latitude: locationInfo.latitude,
         longitude: locationInfo.longitude,
         requesterId: id,
         issue,
+        description,
       });
 
       const helpRequestId = res.data.helpRequest.id;
       socket.emit("send-help-request", { helpRequestId });
 
-      setHelpSent(true); // Set help sent state
+      setHelpSent(true);
       closeHelpModal();
     } catch (error) {
       console.error("Error sending help request:", error);
@@ -60,7 +89,7 @@ function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      const decoded:any = jwtDecode(token);
+      const decoded: any = jwtDecode(token);
       if (decoded?.name) {
         setName(decoded.name);
         setId(decoded.userid);
@@ -73,10 +102,9 @@ function Dashboard() {
           const { latitude, longitude } = position.coords;
           setLocationInfo({ latitude, longitude });
 
-          axios
-            .get("https://walmart-xjjd.onrender.com/api/drivers")
+          axios.get("https://walmart-xjjd.onrender.com/api/drivers")
             .then((res) => {
-              const nearbyDrivers = res.data.drivers.filter((driver:any) =>
+              const nearbyDrivers = res.data.drivers.filter((driver: any) =>
                 getDistanceFromLatLonInKm(
                   latitude,
                   longitude,
@@ -97,181 +125,210 @@ function Dashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    const handleHelpAccepted = (data:any) => {
-      console.log("Help Accepted:", data);
+  useEffect(():any => {
+    const handleHelpAccepted = (data: any) => {
       setHelpAccepted(data);
-      setHelpSent(false); // Reset help sent state when help is accepted
+      setHelpSent(false);
     };
 
     socket.on("help-accepted", handleHelpAccepted);
-
-    return () => {
-      socket.off("help-accepted", handleHelpAccepted);
-    };
+    return () => socket.off("help-accepted", handleHelpAccepted);
   }, []);
 
+  // 🎯 Fetch route when help is accepted
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (helpAccepted?.helperId && locationInfo) {
+        const from = { lat: locationInfo.latitude, lng: locationInfo.longitude };
+        const to = {
+          lat: helpAccepted.location.latitude,
+          lng: helpAccepted.location.longitude,
+        };
+        try {
+          const coords = await getRouteCoordinates(from, to);
+          setRouteCoords(coords);
+        } catch (err) {
+          console.error("Failed to fetch route", err);
+        }
+      }
+    };
+    fetchRoute();
+  }, [helpAccepted, locationInfo]);
+
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <div className="container mx-auto p-4 md:p-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left side — info */}
+          <div className="w-full lg:w-1/2 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">📋</span>
+                Dashboard
+              </h1>
 
-      <div className="flex p-6 gap-6">
-        {/* LEFT SIDE */}
-        <div className="w-1/2 space-y-4">
-          <h1 className="text-2xl font-bold">📋 Dashboard</h1>
+              {/* Info cards */}
+              <div className="space-y-4">
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">👤</span>
+                  <div>
+                    <p className="text-sm text-gray-500">Your name</p>
+                    <p className="font-medium text-gray-800">{name}</p>
+                  </div>
+                </div>
 
-          <div>
-            👤 Your name: <strong>{name}</strong>
-          </div>
+                {/* Location */}
+                {locationInfo ? (
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">📍</span>
+                      <p className="text-sm text-gray-500">Your current location</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pl-11">
+                      <div>
+                        <p className="text-xs text-gray-500">Latitude</p>
+                        <p className="font-medium text-gray-800">
+                          {locationInfo.latitude.toFixed(4)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Longitude</p>
+                        <p className="font-medium text-gray-800">
+                          {locationInfo.longitude.toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg flex items-center">
+                    <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">📡</span>
+                    <p>Fetching your location...</p>
+                  </div>
+                )}
 
-          {locationInfo ? (
-            <div>
-              📍 Your current location:
-              <br />
-              Latitude: <strong>{locationInfo.latitude.toFixed(4)}</strong>
-              <br />
-              Longitude: <strong>{locationInfo.longitude.toFixed(4)}</strong>
-            </div>
-          ) : (
-            <div>📡 Fetching your location...</div>
-          )}
+                {/* Help Button */}
+                <button
+                  onClick={openHelpModal}
+                  className={`w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center transition-all ${helpSent ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                  disabled={helpSent}
+                >
+                  <span className="mr-2">🚨</span>
+                  {helpSent ? 'Help Request Sent' : 'Need Help'}
+                </button>
 
-          <button
-            onClick={openHelpModal}
-            className="mt-4 border rounded-2xl p-2 bg-red-600 text-white hover:bg-red-700 transition-colors"
-            disabled={helpSent}
-          >
-            🚨 Need Help
-          </button>
+                {/* Nearby Drivers Button */}
+                <button
+                  onClick={toggleDrivers}
+                  className="w-full py-3 px-4 rounded-xl font-medium flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white transition-all"
+                >
+                  <span className="mr-2">👥</span>
+                  {showDrivers ? 'Hide Nearby Drivers' : 'Show Nearby Drivers'}
+                </button>
 
-          <HelpModal
-            isOpen={isModalOpen}
-            onClose={closeHelpModal}
-            onSend={handleSend}
-          />
-
-          {/* Show help sent message */}
-          {helpSent && !helpAccepted && (
-            <div className="mt-6 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg shadow">
-              <h2 className="text-lg font-semibold mb-2">📤 Help Request Sent!</h2>
-              <p className="mb-2">
-                <strong>✅ Your help request has been sent successfully.</strong>
-              </p>
-              <p>
-                <strong>⏳ Status:</strong> Waiting for someone to accept your request...
-              </p>
-              <div className="flex items-center mt-3">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
-                <span className="text-sm">Looking for nearby helpers...</span>
+                {/* Drivers List */}
+                {showDrivers && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <h3 className="font-medium text-gray-800 mb-3">Nearby Drivers</h3>
+                    <div className="space-y-3">
+                      {demoDrivers.map((driver, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center">
+                            <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">🚗</span>
+                            <div>
+                              <p className="font-medium">{driver.name}</p>
+                            </div>
+                          </div>
+                          <a 
+                            href={`tel:${driver.phone}`}
+                            className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors"
+                          >
+                            Call: {driver.phone}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Show if help has been accepted */}
-          {helpAccepted && helpAccepted.requesterId === id && (
-            <div className="mt-6 p-4 bg-blue-100 border border-blue-400 text-blue-900 rounded-lg shadow">
-              <h2 className="text-lg font-semibold mb-2">🚨 Help Request Accepted</h2>
-              <p>
-                <strong>👨‍🔧 Helper:</strong> {helpAccepted.helperName}
-              </p>
-              <p>
-                <strong>🧑‍💼 You (Requester):</strong> {helpAccepted.requesterName}
-              </p>
-              <p>
-                <strong>🛠 Issue:</strong> {helpAccepted.issue}
-              </p>
-              <p>
-                <strong>📍 Helper Location:</strong>{" "}
-                {helpAccepted.location.latitude.toFixed(4)},{" "}
-                {helpAccepted.location.longitude.toFixed(4)}
-              </p>
-              <p>
-                <strong>📍 Your Location:</strong>{" "}
-                {locationInfo.latitude.toFixed(4)},{" "}
-                {locationInfo.longitude.toFixed(4)}
-              </p>
-              <p>
-                <strong>📏 Distance:</strong>{" "}
-                {getDistanceFromLatLonInKm(
-                  helpAccepted.location.latitude,
-                  helpAccepted.location.longitude,
-                  locationInfo.latitude,
-                  locationInfo.longitude
-                ).toFixed(2)}{" "}
-                km
-              </p>
-              <p>
-                <strong>🕒 Accepted At:</strong>{" "}
-                {new Date(helpAccepted.updatedAt).toLocaleString()}
-              </p>
-            </div>
-          )}
-        </div>
+            <HelpModal isOpen={isModalOpen} onClose={closeHelpModal} onSend={handleSend} />
 
-        {/* RIGHT SIDE: MAP */}
-        <div className="w-1/2 h-[500px] relative">
-          {locationInfo && (
-            <MapContainer
-            //@ts-ignore
-              center={[locationInfo.latitude, locationInfo.longitude]}
-              zoom={14}
-              scrollWheelZoom={true}
-              className="h-full w-full rounded-lg shadow"
-              style={{ zIndex: 1 }} // Lower z-index for map
-            >
-              <TileLayer
-                //@ts-ignore
-                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-
-              {/* Requester Marker */}
-              <Marker position={[locationInfo.latitude, locationInfo.longitude]}>
-                <Popup>You (Requester)</Popup>
-              </Marker>
-
-              {/* Nearby Drivers */}
-              {allDrivers.map((driver:any) => (
-                <Marker
-                  key={driver.id}
-                  position={[driver.latitude, driver.longitude]}
-                >
-                  <Popup>
-                    🚕 Driver: <strong>{driver.name}</strong>
-                    <br />
-                    Status: {driver.status}
-                  </Popup>
-                </Marker>
-              ))}
-
-              {/* Helper Marker */}
-              {helpAccepted?.helperId && (
-                <Marker
-                  position={[
-                    helpAccepted.location.latitude,
-                    helpAccepted.location.longitude,
-                  ]}
-                >
-                  <Popup>Helper: {helpAccepted.helperName}</Popup>
-                </Marker>
-              )}
-
-              {/* Polyline between helper and requester */}
-              {helpAccepted?.helperId && (
-                <Polyline
-                  positions={[
-                    [locationInfo.latitude, locationInfo.longitude],
-                    [
+            {/* Accepted info */}
+            {helpAccepted && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-blue-800 mb-2">Help Accepted 🚨</h2>
+                <p className="text-sm text-gray-600 mb-2">Helper: {helpAccepted.helperName}</p>
+                <p className="text-sm text-gray-600 mb-2">Issue: {helpAccepted.issue}</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Distance: {
+                    getDistanceFromLatLonInKm(
                       helpAccepted.location.latitude,
                       helpAccepted.location.longitude,
-                    ],
-                  ]}
-                  // @ts-ignore
-                  color="blue"
-                />
+                      locationInfo.latitude,
+                      locationInfo.longitude
+                    ).toFixed(2)
+                  } km
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right side — map */}
+          <div className="w-full lg:w-1/2">
+            <div className="bg-white rounded-xl shadow-sm p-4 h-full">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">🗺️</span>
+                Location Map
+              </h2>
+              {locationInfo && (
+                <div className="h-[500px] rounded-lg overflow-hidden">
+                  <MapContainer
+                    //@ts-ignore
+                    center={[locationInfo.latitude, locationInfo.longitude]}
+                    zoom={14}
+                    scrollWheelZoom={true}
+                    className="h-full w-full"
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    {/* You marker */}
+                    <Marker position={[locationInfo.latitude, locationInfo.longitude]}>
+                      <Popup>You</Popup>
+                    </Marker>
+
+                    {/* Drivers */}
+                    {allDrivers.map((driver: any) => (
+                      <Marker
+                        key={driver.id}
+                        position={[driver.latitude, driver.longitude]}
+                      >
+                        <Popup>{driver.name}</Popup>
+                      </Marker>
+                    ))}
+
+                    {/* Helper */}
+                    {helpAccepted?.helperId && (
+                      <Marker
+                        position={[helpAccepted.location.latitude, helpAccepted.location.longitude]}
+                      >
+                        <Popup>Helper</Popup>
+                      </Marker>
+                    )}
+
+                    {/* Route */}
+                    {routeCoords.length > 0 && (
+                      <Polyline positions={routeCoords} color="blue" weight={4} />
+                    )}
+                  </MapContainer>
+                </div>
               )}
-            </MapContainer>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
