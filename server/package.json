@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "tsc -b && node dist/index.js",
-    "copy-public": "xcopy public dist\\public /E /I /Y"
-  },
+ "scripts": {
+  "dev": "tsc -b && node dist/index.js",
+  "build": "tsc && npm run copy-public",
+  "copy-public": "xcopy public dist\\public /E /I /Y"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
