@@ -3,17 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
- "scripts": {
-  "dev": "tsc -b && node dist/index.js",
-  "build": "tsc && npm run copy-public",
-  "copy-public": "xcopy public dist\\public /E /I /Y"
-},
+  "scripts": {
+    "dev": "tsc -b && node dist/index.js",
+    "build": "tsc && npm run copy-public",
+    "copy-public": "cpx \"public/**/*\" dist/public"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@types/multer": "^1.4.13",
+    "cpx": "^1.5.0",
     "prisma": "^6.5.0",
     "typescript": "^5.8.3"
   },
