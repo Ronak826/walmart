@@ -1,18 +1,25 @@
 import { PrismaClient } from "@prisma/client";
+import uploadOnCloud from "../config/cloudinary";
 const prisma = new PrismaClient();
 
 // Create a new help request
 export const CreateHelp = async (req: any, res: any) => {
   const { requesterId, issue, latitude, longitude,description} = req.body;
-  console.log(req.body)
+  console.log("heloooo")
+   console.log(issue)
+   console.log(latitude)
+   console.log(description);
+  const image = await uploadOnCloud(req.file?.path);
+ console.log(image)
   try {
     const helpRequest = await prisma.helpRequest.create({
       data: {
-        requesterId,
+        requesterId:parseInt(requesterId),
         issue,
-        latitude,
-        longitude,
+        latitude:parseFloat(latitude),
+        longitude:parseFloat(longitude),
         description,
+        image
       },
     });
 

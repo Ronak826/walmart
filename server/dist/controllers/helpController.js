@@ -8,22 +8,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResolveHelpRequest = exports.AcceptHelpRequest = exports.GetAllPendingHelps = exports.CreateHelp = void 0;
 const client_1 = require("@prisma/client");
+const cloudinary_1 = __importDefault(require("../config/cloudinary"));
 const prisma = new client_1.PrismaClient();
 // Create a new help request
 const CreateHelp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { requesterId, issue, latitude, longitude, description } = req.body;
-    console.log(req.body);
+    console.log("heloooo");
+    console.log(issue);
+    console.log(latitude);
+    console.log(description);
+    const image = yield (0, cloudinary_1.default)((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
+    console.log(image);
     try {
         const helpRequest = yield prisma.helpRequest.create({
             data: {
-                requesterId,
+                requesterId: parseInt(requesterId),
                 issue,
-                latitude,
-                longitude,
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
                 description,
+                image
             },
         });
         res.status(201).json({ message: "Help request created", helpRequest });

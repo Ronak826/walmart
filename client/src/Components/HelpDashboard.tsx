@@ -5,12 +5,11 @@ import socket from "../socket/socket";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import siren from "../assets/Siren.mp3"
-// Notification sound (you'll need to add this file to your public folder)
+import siren from "../assets/Siren.mp3";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
-// Fix for default marker icons
-
-function getDistanceFromLatLonInKm(lat1:any, lon1:any, lat2:any, lon2:any) {
+function getDistanceFromLatLonInKm(lat1: any, lon1: any, lat2: any, lon2: any) {
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
@@ -23,11 +22,11 @@ function getDistanceFromLatLonInKm(lat1:any, lon1:any, lat2:any, lon2:any) {
   return R * c;
 }
 
-function deg2rad(deg:any) {
+function deg2rad(deg: any) {
   return deg * (Math.PI / 180);
 }
 
-async function getRouteCoordinates(from:any, to:any) {
+async function getRouteCoordinates(from: any, to: any) {
   try {
     const response = await fetch("https://api.openrouteservice.org/v2/directions/driving-car/geojson", {
       method: "POST",
@@ -43,10 +42,9 @@ async function getRouteCoordinates(from:any, to:any) {
       }),
     });
     const data = await response.json();
-    return data.features[0].geometry.coordinates.map(([lng, lat]:any) => [lat, lng]);
+    return data.features[0].geometry.coordinates.map(([lng, lat]: any) => [lat, lng]);
   } catch (error) {
     console.error("Error fetching route:", error);
-    // Return straight line if API fails
     return [
       [from.latitude, from.longitude],
       [to.latitude, to.longitude]
@@ -55,22 +53,21 @@ async function getRouteCoordinates(from:any, to:any) {
 }
 
 function HelpDashboard() {
-  const [helpRequests, setHelpRequests]:any = useState([]);
-  const [selectedRequest, setSelectedRequest]:any = useState(null);
-  const [helperLocation, setHelperLocation]:any = useState(null);
-  const [helperName, setHelperName]:any = useState("");
-  const [allDrivers, setAllDrivers]:any = useState([]);
-  const [routeCoords, setRouteCoords]:any = useState([]);
-  const [isLoadingRoute, setIsLoadingRoute]:any = useState(false);
-  const [isAccepting, setIsAccepting]:any = useState(false); // New state for accept loading
-  const notificationRef:any = useRef(null);
+  const [helpRequests, setHelpRequests] = useState<any[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [helperLocation, setHelperLocation] = useState<any>(null);
+  const [helperName, setHelperName] = useState("");
+  const [allDrivers, setAllDrivers] = useState<any[]>([]);
+  const [routeCoords, setRouteCoords] = useState<any[]>([]);
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const notificationRef = useRef<HTMLAudioElement | null>(null);
 
   const staticHelperLocation = {
     latitude: 21.1465,
     longitude: 79.067,
   };
 
-  // Initialize notification sound
   useEffect(() => {
     notificationRef.current = new Audio(siren);
   }, []);
@@ -83,12 +80,10 @@ function HelpDashboard() {
   }, []);
 
   useEffect(() => {
-    const handleReceiveHelpRequest = (data:any) => {
-      setHelpRequests((prevRequests:any) => [data, ...prevRequests]);
+    const handleReceiveHelpRequest = (data: any) => {
+      setHelpRequests((prevRequests) => [data, ...prevRequests]);
       
-      // Play notification sound when new request arrives
       if (notificationRef.current) {
-        // @ts-ignore
         notificationRef.current.play().catch(e => console.log("Audio play failed:", e));
       }
     };
@@ -100,12 +95,12 @@ function HelpDashboard() {
     };
   }, []);
 
-  const handleAccept = async (helpRequestId:any) => {
+  const handleAccept = async (helpRequestId: any) => {
     try {
-      setIsAccepting(true); // Show accepting loader
+      setIsAccepting(true);
       setIsLoadingRoute(true);
       const token = localStorage.getItem("token") || "";
-      const decoded :any= jwtDecode(token);
+      const decoded: any = jwtDecode(token);
       const helperId = decoded.userid;
       const helperNameFromToken = decoded.name || "Helper";
 
@@ -116,15 +111,15 @@ function HelpDashboard() {
       setHelperName(helperNameFromToken);
       socket.emit("accept-help", { helpRequestId, helperId });
 
-      const request = helpRequests.find((r:any) => r.helpRequestId === helpRequestId);
+      const request = helpRequests.find((r: any) => r.helpRequestId === helpRequestId);
       setSelectedRequest(request);
       setHelperLocation(staticHelperLocation);
 
       const route = await getRouteCoordinates(staticHelperLocation, request.location);
       setRouteCoords(route);
 
-      setHelpRequests((prev:any) =>
-        prev.filter((r:any) => r.helpRequestId !== helpRequestId)
+      setHelpRequests((prev) =>
+        prev.filter((r: any) => r.helpRequestId !== helpRequestId)
       );
     } catch (error) {
       console.error("Error accepting help request:", error);
@@ -134,16 +129,15 @@ function HelpDashboard() {
     }
   };
 
-  const handleReject = (helpRequestId:any) => {
-    setHelpRequests((prev:any) =>
-      prev.filter((r:any) => r.helpRequestId !== helpRequestId)
+  const handleReject = (helpRequestId: any) => {
+    setHelpRequests((prev) =>
+      prev.filter((r: any) => r.helpRequestId !== helpRequestId)
     );
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-     
       <div className="container mx-auto p-4 md:p-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Panel - Help Requests */}
@@ -164,7 +158,7 @@ function HelpDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {helpRequests.map((request:any, index:any) => (
+                  {helpRequests.map((request: any, index: number) => (
                     <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                       <div className="flex items-start mb-2">
                         <div className="bg-red-100 text-red-600 p-2 rounded-lg mr-3">
@@ -187,7 +181,23 @@ function HelpDashboard() {
                         </div>
                       </div>
                       
-                      {/* Improved Description Section */}
+                      {/* Image Display */}
+                      {request.image && (
+                        <div className="mt-3 pl-11">
+                          <p className="text-xs text-gray-500 mb-1">Image</p>
+                          <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                            <LazyLoadImage
+                              src={request.image}
+                              alt={`${request.requesterName}'s reported issue`}
+                              effect="blur"
+                              className="w-full h-48 object-contain"
+                              placeholderSrc="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxIDEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZWVlZWUiLz48L3N2Zz4="
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Description */}
                       {request.description && (
                         <div className="mt-3 pl-11">
                           <p className="text-xs text-gray-500 mb-1">Description</p>
@@ -266,7 +276,23 @@ function HelpDashboard() {
                   </div>
                 </div>
                 
-                {/* Improved Description in Accepted Request */}
+                {/* Image in Accepted Request */}
+                {selectedRequest.image && (
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-500 mb-1">Image</p>
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                      <LazyLoadImage
+                        src={selectedRequest.image}
+                        alt={`${selectedRequest.requesterName}'s reported issue`}
+                        effect="blur"
+                        className="w-full h-48 object-contain"
+                        placeholderSrc="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxIDEiPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNlZWVlZWUiLz48L3N2Zz4="
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* Description in Accepted Request */}
                 {selectedRequest.description && (
                   <div className="mt-4">
                     <p className="text-xs text-gray-500 mb-1">Description</p>
@@ -313,7 +339,7 @@ function HelpDashboard() {
                   />
 
                   {/* Drivers */}
-                  {allDrivers.map((driver:any) => (
+                  {allDrivers.map((driver: any) => (
                     <Marker
                       key={driver.id}
                       position={[driver.latitude, driver.longitude]}
@@ -353,6 +379,15 @@ function HelpDashboard() {
                               <p className="text-xs">{selectedRequest.description}</p>
                             </div>
                           )}
+                          {selectedRequest.image && (
+                            <div className="mt-2">
+                              <img 
+                                src={selectedRequest.image} 
+                                alt="Reported issue" 
+                                className="w-full h-auto rounded border border-gray-200"
+                              />
+                            </div>
+                          )}
                         </div>
                       </Popup>
                     </Marker>
@@ -378,7 +413,7 @@ function HelpDashboard() {
           </div>
         </div>
       </div>
-    {  /*//@ts-ignore*/}
+      {/* @ts-ignore */ }
       <style jsx global>{`
         .custom-popup .leaflet-popup-content-wrapper {
           border-radius: 8px;
@@ -386,6 +421,10 @@ function HelpDashboard() {
         }
         .custom-popup .leaflet-popup-content {
           margin: 8px;
+        }
+        .custom-popup img {
+          max-width: 200px;
+          max-height: 150px;
         }
       `}</style>
     </div>

@@ -64,17 +64,25 @@ function Dashboard() {
   const closeHelpModal = () => setIsModalOpen(false);
   const toggleDrivers = () => setShowDrivers(!showDrivers);
 
-  const handleSend = async ({issue,description}:any) => {
-    console.log(description)
+  const handleSend = async (formData: FormData) => {
+    console.log(formData)
     try {
-      const res = await axios.post("https://walmart-xjjd.onrender.com/api/request/help-request", {
-        latitude: locationInfo.latitude,
-        longitude: locationInfo.longitude,
-        requesterId: id,
-        issue,
-        description,
-      });
+      
+    formData.append("latitude", locationInfo.latitude);
+    formData.append("longitude", locationInfo.longitude);
+    formData.append("requesterId", id);
+    
+  
 
+    const res = await axios.post(
+      "https://walmart-xjjd.onrender.com/api/request/help-request",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }
+    );
       const helpRequestId = res.data.helpRequest.id;
       socket.emit("send-help-request", { helpRequestId });
 
@@ -135,7 +143,7 @@ function Dashboard() {
     return () => socket.off("help-accepted", handleHelpAccepted);
   }, []);
 
-  // 🎯 Fetch route when help is accepted
+  
   useEffect(() => {
     const fetchRoute = async () => {
       if (helpAccepted?.helperId && locationInfo) {

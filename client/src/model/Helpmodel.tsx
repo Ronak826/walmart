@@ -4,7 +4,8 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
   const [issue, setIssue] = useState('');
   const [description, setDescription] = useState('');
   const [urgency, setUrgency] = useState('');
-  const [isSending, setIsSending] = useState(false); // New state for loading indicator
+  const [image, setImage] = useState<File | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   if (!isOpen) return null;
 
@@ -18,21 +19,27 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
       return;
     }
 
-    setIsSending(true); // Start loading
-    
+    setIsSending(true);
+
     try {
-      // Pass all data
-      await onSend({issue, description, urgency});
-      
-      // Reset fields only if send is successful
+      const formData = new FormData();
+      formData.append('issue', issue);
+      formData.append('urgency', urgency);
+      formData.append('description', description);
+      if (image) {
+        formData.append('image', image);
+      }
+
+      await onSend(formData);
+
       setIssue('');
       setDescription('');
       setUrgency('');
+      setImage(null);
     } catch (error) {
       console.error("Error sending help request:", error);
-      // Optionally show error message to user
     } finally {
-      setIsSending(false); // Stop loading regardless of success/failure
+      setIsSending(false);
     }
   };
 
@@ -44,12 +51,11 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
           Select the type of problem you're experiencing. Your request will be sent directly to <strong>Drivers within 6 km range</strong>.
         </p>
 
-        {/* Issue type */}
         <select
           value={issue}
           onChange={(e) => setIssue(e.target.value)}
           className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
-          disabled={isSending} // Disable while sending
+          disabled={isSending}
         >
           <option value="">Select problem type</option>
           <option value="Flat tire">🛞 Flat tire</option>
@@ -61,12 +67,11 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
           <option value="Other">❓ Other</option>
         </select>
 
-        {/* Urgency level */}
         <select
           value={urgency}
           onChange={(e) => setUrgency(e.target.value)}
           className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          disabled={isSending} // Disable while sending
+          disabled={isSending}
         >
           <option value="">Select urgency level</option>
           <option value="Low">🟢 Low</option>
@@ -74,15 +79,26 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
           <option value="High">🔴 High</option>
         </select>
 
-        {/* Optional description */}
         <textarea
           placeholder="Optional: Describe your issue in more detail..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
           rows={3}
-          disabled={isSending} // Disable while sending
+          disabled={isSending}
         />
+
+        {/* Image upload input */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files?.[0] || null)}
+          className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          disabled={isSending}
+        />
+        {image && (
+          <p className="mb-4 text-sm text-gray-600">📷 Selected: {image.name}</p>
+        )}
 
         {issue && urgency && (
           <div className="mb-4 p-3 bg-gray-100 rounded-lg text-sm text-gray-700">
@@ -92,7 +108,6 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
           </div>
         )}
 
-        {/* Buttons */}
         <div className="flex justify-end gap-4">
           <button
             onClick={() => {
@@ -100,16 +115,17 @@ function HelpModal({ isOpen, onClose, onSend }: any) {
               setIssue('');
               setDescription('');
               setUrgency('');
+              setImage(null);
             }}
             className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-            disabled={isSending} // Disable while sending
+            disabled={isSending}
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition flex items-center justify-center min-w-32"
-            disabled={isSending} // Disable while sending
+            disabled={isSending}
           >
             {isSending ? (
               <>

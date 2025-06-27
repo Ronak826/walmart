@@ -23,7 +23,7 @@ const socketHandler = (io, socket) => {
                     requester: true,
                 },
             });
-            //  console.log(helpRequest)
+            console.log(helpRequest);
             if (!helpRequest) {
                 return socket.emit("error", { message: "Help request not found" });
             }
@@ -35,6 +35,7 @@ const socketHandler = (io, socket) => {
                 requesterEmail: helpRequest.requester.email,
                 issue: helpRequest.issue,
                 description: helpRequest.description,
+                image: helpRequest.image,
                 location: {
                     latitude: helpRequest.latitude,
                     longitude: helpRequest.longitude,
@@ -70,6 +71,7 @@ const socketHandler = (io, socket) => {
                 helperName: (_b = helpRequest.helper) === null || _b === void 0 ? void 0 : _b.name,
                 requesterId: helpRequest.requester.id,
                 requesterName: helpRequest.requester.name,
+                image: helpRequest.image,
                 issue: helpRequest.issue,
                 description: helpRequest.description,
                 location: {

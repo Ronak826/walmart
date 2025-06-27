@@ -15,7 +15,7 @@ export const socketHandler = (io: Server, socket: Socket) => {
           requester: true, 
         },
       });
-    //  console.log(helpRequest)
+      console.log(helpRequest)
       if (!helpRequest) {
         return socket.emit("error", { message: "Help request not found" });
       }
@@ -28,6 +28,7 @@ export const socketHandler = (io: Server, socket: Socket) => {
         requesterEmail: helpRequest.requester.email,
         issue: helpRequest.issue,
         description:helpRequest.description,
+        image:helpRequest.image,
         location: {
           latitude: helpRequest.latitude,
           longitude: helpRequest.longitude,
@@ -63,6 +64,7 @@ export const socketHandler = (io: Server, socket: Socket) => {
       helperName: helpRequest.helper?.name,
       requesterId: helpRequest.requester.id,
       requesterName: helpRequest.requester.name,
+      image:helpRequest.image,
       issue: helpRequest.issue,
       description:helpRequest.description,
       location: {
