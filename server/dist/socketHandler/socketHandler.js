@@ -14,6 +14,7 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const socketHandler = (io, socket) => {
     socket.on("send-help-request", (_a) => __awaiter(void 0, [_a], void 0, function* ({ helpRequestId }) {
+        var _b, _c, _d;
         try {
             console.log(helpRequestId);
             // Find requester details from DB
@@ -33,6 +34,9 @@ const socketHandler = (io, socket) => {
                 requesterId: helpRequest.requester.id,
                 requesterName: helpRequest.requester.name,
                 requesterEmail: helpRequest.requester.email,
+                driverno: (_b = helpRequest.requester) === null || _b === void 0 ? void 0 : _b.phoneNo,
+                driverphoto: (_c = helpRequest.requester) === null || _c === void 0 ? void 0 : _c.driverimage,
+                vehicleno: (_d = helpRequest.requester) === null || _d === void 0 ? void 0 : _d.vehicleNo,
                 issue: helpRequest.issue,
                 description: helpRequest.description,
                 image: helpRequest.image,
@@ -50,7 +54,7 @@ const socketHandler = (io, socket) => {
         }
     }));
     socket.on("accept-help", (_a) => __awaiter(void 0, [_a], void 0, function* ({ helpRequestId, helperId }) {
-        var _b, _c, _d;
+        var _b, _c, _d, _e, _f, _g;
         try {
             const helpRequest = yield prisma.helpRequest.findUnique({
                 where: { id: helpRequestId },
@@ -68,15 +72,18 @@ const socketHandler = (io, socket) => {
             socket.broadcast.emit("help-accepted", {
                 helpRequestId: helpRequest.id,
                 helperId: helperId,
-                helperName: (_b = helpRequest.helper) === null || _b === void 0 ? void 0 : _b.name,
+                driverno: (_b = helpRequest.helper) === null || _b === void 0 ? void 0 : _b.phoneNo,
+                driverphoto: (_c = helpRequest.helper) === null || _c === void 0 ? void 0 : _c.driverimage,
+                vehicleno: (_d = helpRequest.helper) === null || _d === void 0 ? void 0 : _d.vehicleNo,
+                helperName: (_e = helpRequest.helper) === null || _e === void 0 ? void 0 : _e.name,
                 requesterId: helpRequest.requester.id,
                 requesterName: helpRequest.requester.name,
                 image: helpRequest.image,
                 issue: helpRequest.issue,
                 description: helpRequest.description,
                 location: {
-                    latitude: (_c = helpRequest.helper) === null || _c === void 0 ? void 0 : _c.latitude,
-                    longitude: (_d = helpRequest.helper) === null || _d === void 0 ? void 0 : _d.longitude,
+                    latitude: (_f = helpRequest.helper) === null || _f === void 0 ? void 0 : _f.latitude,
+                    longitude: (_g = helpRequest.helper) === null || _g === void 0 ? void 0 : _g.longitude,
                 },
                 updatedAt: helpRequest.updatedAt,
             });

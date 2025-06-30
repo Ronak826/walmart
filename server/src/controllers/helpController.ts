@@ -11,7 +11,7 @@ export const CreateHelp = async (req: any, res: any) => {
    console.log(description);
   const image = await uploadOnCloud(req.file?.path);
  console.log(image)
-  try {
+  
     const helpRequest = await prisma.helpRequest.create({
       data: {
         requesterId:parseInt(requesterId),
@@ -24,11 +24,7 @@ export const CreateHelp = async (req: any, res: any) => {
     });
 
     res.status(201).json({ message: "Help request created", helpRequest });
-    
-  } catch (error) {
-    console.error("CreateHelp error:", error);
-    res.status(500).json({ error: "Failed to create help request" });
-  }
+ 
 };
 
 // Get all pending help requests

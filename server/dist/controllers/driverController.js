@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetDrivers = void 0;
+exports.update = exports.GetHelpCount = exports.GetDrivers = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const GetDrivers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,3 +28,29 @@ const GetDrivers = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.GetDrivers = GetDrivers;
+const GetHelpCount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("hiii");
+    const id = parseInt(req.params.id);
+    const driver = yield prisma.driver.findFirst({
+        where: { id: id },
+    });
+    res.json({
+        driver
+    });
+});
+exports.GetHelpCount = GetHelpCount;
+const update = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = parseInt(req.params.id);
+    const updated = yield prisma.driver.update({
+        where: { id },
+        data: {
+            helpsCount: {
+                increment: 1
+            }
+        }
+    });
+    res.json({
+        updated
+    });
+});
+exports.update = update;

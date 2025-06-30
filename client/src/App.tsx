@@ -6,6 +6,8 @@ import Dashboard from "./Components/Dashboard"
 import HelpDashboard from "./Components/HelpDashboard"
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MyProfile from "./pages/myProfile"
+import Completed from "./pages/Completed"
 
 // 🛠 Fix marker icons for deployment
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -22,10 +24,12 @@ function App() {
     <div>
       <Routes>
         <Route path="/" element={<Home/>}></Route>
+        <Route path="/completed" element={<Completed></Completed>}></Route>
         <Route path="/signin" element={<Signin/>}></Route>
         <Route path="/signup" element={<Signup/>}></Route>
         <Route path="/dashboard" element={<Dashboard/>}></Route>
         <Route path="/help-dashboard" element={<HelpDashboard/>}></Route>
+        <Route path="/my-profile" element={<MyProfile/>}></Route>
       </Routes>
     </div>
   )

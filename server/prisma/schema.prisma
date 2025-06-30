@@ -22,7 +22,11 @@ model Driver {
   longitude Float
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-
+  coins     Int?          @default(0)
+  driverimage String?
+  phoneNo   String?
+  vehicleNo String?
+  helpsCount    Int?   @default(0)
   // Named relations
   requests  HelpRequest[] @relation("DriverRequests")
   helps     HelpRequest[] @relation("DriverHelps")

@@ -24,6 +24,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "cloudinary": "^2.7.0",
     "express": "^5.1.0",
+    "framer-motion": "^12.20.1",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "multer": "^2.0.1",

@@ -45,7 +45,9 @@ function Navbar() {
                 <Button variant="ghost" onClick={() => navigate('/help-dashboard')}>
                   Dashboard
                 </Button>
-                
+                 <Button  variant="ghost" onClick={() => navigate('/my-profile')}>
+                  MyProfile
+                </Button>
                 <Button
                   variant="ghost"
                   onClick={() => {

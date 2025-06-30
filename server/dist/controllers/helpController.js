@@ -26,23 +26,17 @@ const CreateHelp = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     console.log(description);
     const image = yield (0, cloudinary_1.default)((_a = req.file) === null || _a === void 0 ? void 0 : _a.path);
     console.log(image);
-    try {
-        const helpRequest = yield prisma.helpRequest.create({
-            data: {
-                requesterId: parseInt(requesterId),
-                issue,
-                latitude: parseFloat(latitude),
-                longitude: parseFloat(longitude),
-                description,
-                image
-            },
-        });
-        res.status(201).json({ message: "Help request created", helpRequest });
-    }
-    catch (error) {
-        console.error("CreateHelp error:", error);
-        res.status(500).json({ error: "Failed to create help request" });
-    }
+    const helpRequest = yield prisma.helpRequest.create({
+        data: {
+            requesterId: parseInt(requesterId),
+            issue,
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            description,
+            image
+        },
+    });
+    res.status(201).json({ message: "Help request created", helpRequest });
 });
 exports.CreateHelp = CreateHelp;
 // Get all pending help requests

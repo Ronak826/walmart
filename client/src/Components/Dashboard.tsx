@@ -170,7 +170,7 @@ function Dashboard() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left side — info */}
           <div className="w-full lg:w-1/2 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+          {!helpAccepted &&  <div className="bg-white rounded-xl shadow-sm p-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">📋</span>
                 Dashboard
@@ -260,27 +260,141 @@ function Dashboard() {
                 )}
               </div>
             </div>
-
+}
             <HelpModal isOpen={isModalOpen} onClose={closeHelpModal} onSend={handleSend} />
-
+         
             {/* Accepted info */}
-            {helpAccepted && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 shadow-sm">
-                <h2 className="text-lg font-semibold text-blue-800 mb-2">Help Accepted 🚨</h2>
-                <p className="text-sm text-gray-600 mb-2">Helper: {helpAccepted.helperName}</p>
-                <p className="text-sm text-gray-600 mb-2">Issue: {helpAccepted.issue}</p>
-                <p className="text-sm text-gray-600 mb-2">
-                  Distance: {
-                    getDistanceFromLatLonInKm(
-                      helpAccepted.location.latitude,
-                      helpAccepted.location.longitude,
-                      locationInfo.latitude,
-                      locationInfo.longitude
-                    ).toFixed(2)
-                  } km
-                </p>
-              </div>
+           {helpAccepted && (
+  <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+    {/* Header */}
+    <div className="bg-blue-600 p-4 text-white">
+      <div className="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <h2 className="text-lg font-bold">Help is on the way!</h2>
+      </div>
+      <p className="text-sm opacity-90 mt-1">Helper has accepted your request</p>
+    </div>
+
+    {/* Helper Profile */}
+    <div className="p-5">
+      <div className="flex items-start">
+        {/* Helper Photo */}
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full bg-blue-100 overflow-hidden border-2 border-blue-500 flex items-center justify-center">
+            {helpAccepted.driverphoto ? (
+              <img 
+                src={helpAccepted.driverphoto} 
+                alt={helpAccepted.helperName} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-blue-600">
+                {helpAccepted.helperName.charAt(0)}
+              </span>
             )}
+          </div>
+          <span className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+            🛠️ Helper
+          </span>
+        </div>
+
+        {/* Helper Info */}
+        <div className="ml-4 flex-1">
+          <h3 className="font-bold text-lg text-gray-800">{helpAccepted.helperName}</h3>
+          
+          {/* Vehicle Info */}
+          {helpAccepted.vehicleno && (
+            <div className="flex items-center mt-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              <span className="text-sm text-gray-600">Vehicle: {helpAccepted.vehicleno}</span>
+            </div>
+          )}
+
+          {/* Driver Number */}
+          {helpAccepted.driverno && (
+            <div className="flex items-center mt-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <span className="text-sm text-gray-600">Driver ID: {helpAccepted.driverno}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Issue Details */}
+      <div className="mt-4 bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <h4 className="font-semibold text-gray-700 mb-2">Your Reported Issue</h4>
+        <div className="flex items-start">
+          <span className="bg-red-100 text-red-600 p-1 rounded mr-2 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </span>
+          <div>
+            <p className="font-medium text-gray-800">{helpAccepted.issue}</p>
+            {helpAccepted.description && (
+              <p className="text-sm text-gray-600 mt-1">{helpAccepted.description}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Image Preview */}
+     
+
+      {/* Distance and Contact */}
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="bg-blue-50 rounded-lg p-3 text-center">
+          <p className="text-xs text-blue-600 mb-1">Distance</p>
+          <p className="font-bold text-blue-800">
+            {getDistanceFromLatLonInKm(
+              helpAccepted.location.latitude,
+              helpAccepted.location.longitude,
+              locationInfo.latitude,
+              locationInfo.longitude
+            ).toFixed(2)} km
+          </p>
+        </div>
+        
+        <div className="bg-green-50 rounded-lg p-3 text-center">
+          <p className="text-xs text-green-600 mb-1">Estimated Time</p>
+          <p className="font-bold text-green-800">
+            ~{(getDistanceFromLatLonInKm(
+              helpAccepted.location.latitude,
+              helpAccepted.location.longitude,
+              locationInfo.latitude,
+              locationInfo.longitude
+            ) * 2).toFixed(0)} mins
+          </p>
+        </div>
+      </div>
+
+      {/* Contact Buttons */}
+      <div className="mt-4 flex space-x-2">
+        <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          Call Helper
+        </button>
+        <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Message
+        </button>
+      </div>
+
+      {/* Track Button */}
+     
+    </div>
+  </div>
+)}
           </div>
 
           {/* Right side — map */}

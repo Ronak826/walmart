@@ -17,6 +17,7 @@ app.use(express_1.default.json());
 app.use("/api/auth", authRoute_1.default);
 app.use("/api/drivers", driverRoute_1.default);
 app.use("/api/request", helpRoute_1.default);
+app.use("/api/driver", driverRoute_1.default);
 app.get("/", (req, res) => {
     res.send("Hi I am Ronak");
 });

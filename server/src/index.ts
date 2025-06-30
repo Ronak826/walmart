@@ -13,7 +13,7 @@ app.use(express.json())
 app.use("/api/auth",authRoute);
 app.use("/api/drivers",driverRoute);
 app.use("/api/request",HelpRoute)
-
+app.use("/api/driver",driverRoute)
 app.get("/",(req,res)=>{
     res.send("Hi I am Ronak")
 })
