@@ -6,8 +6,26 @@ import HelpModal from "../model/Helpmodel";
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import socket from "../socket/socket";
+import L from "leaflet";
 
 import "leaflet/dist/leaflet.css";
+
+const redIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+// const blueIcon = new L.Icon({
+//   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+//   shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+//   iconSize: [25, 41],
+//   iconAnchor: [12, 41],
+//   popupAnchor: [1, -34],
+//   shadowSize: [41, 41],
+// });
 
 // 🔁 Fetch road-based route using OpenRouteService
 const getRouteCoordinates = async (from: any, to: any) => {
@@ -56,8 +74,11 @@ function Dashboard() {
 
   // Demo drivers data
   const demoDrivers = [
-    { name: "Ritesh", phone: "8265097155" },
-    { name: "Jayesh K", phone: "8767955108" }
+    { name: "Ritesh", phone: "8265097155", vehicleno: "MH12AB1234" },
+    { name: "Rupesh", phone: "8265097155" , vehicleno: "MH12AB4321" },
+    { name: "Ghafur Ghisela", phone: "8265097155", vehicleno: "MH12AB2314" },
+    { name: "Jayesh K", phone: "8767955108" , vehicleno: "MH12AB3214" },
+    {name: "Prathamesh", phone: "8265097155", vehicleno: "MH12AB2134" }
   ];
 
   const openHelpModal = () => setIsModalOpen(true);
@@ -236,28 +257,40 @@ function Dashboard() {
 
                 {/* Drivers List */}
                 {showDrivers && (
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <h3 className="font-medium text-gray-800 mb-3">Nearby Drivers</h3>
-                    <div className="space-y-3">
-                      {demoDrivers.map((driver, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center">
-                            <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">🚗</span>
-                            <div>
-                              <p className="font-medium">{driver.name}</p>
-                            </div>
-                          </div>
-                          <a 
-                            href={`tel:${driver.phone}`}
-                            className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors"
-                          >
-                            Call: {driver.phone}
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+  <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <h3 className="font-medium text-gray-800 mb-3">Nearby Drivers</h3>
+    <div className="space-y-3">
+      {demoDrivers.map((driver, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-3 items-center p-2 bg-gray-50 rounded-lg"
+        >
+          {/* Name + Icon */}
+          <div className="flex items-center">
+            <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">🚗</span>
+            <p className="font-medium">{driver.name}</p>
+          </div>
+
+          {/* Phone - Center Column */}
+          <div className="flex justify-center">
+            <a
+              href={`tel:${driver.phone}`}
+              className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-sm hover:bg-green-200 transition-colors"
+            >
+              Call: {driver.phone}
+            </a>
+          </div>
+
+          {/* Vehicle Number */}
+          <div className="flex justify-end">
+            <p className="font-medium">{driver.vehicleno}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
               </div>
             </div>
 }
@@ -419,9 +452,13 @@ function Dashboard() {
                     />
 
                     {/* You marker */}
-                    <Marker position={[locationInfo.latitude, locationInfo.longitude]}>
-                      <Popup>You</Popup>
-                    </Marker>
+                    <Marker
+  position={[locationInfo.latitude, locationInfo.longitude]}
+  icon={redIcon} // <-- use redIcon here
+>
+  <Popup>You</Popup>
+</Marker>
+
 
                     {/* Drivers */}
                     {allDrivers.map((driver: any) => (

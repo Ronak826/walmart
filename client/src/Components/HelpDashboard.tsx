@@ -9,6 +9,32 @@ import siren from "../assets/siren (2).mp3";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import { useNavigate } from "react-router-dom";
+import L from "leaflet";
+
+// const redIcon = new L.Icon({
+//   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+//   shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+//   iconSize: [25, 41],
+//   iconAnchor: [12, 41],
+//   popupAnchor: [1, -34],
+//   shadowSize: [41, 41],
+// });
+const greenIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+const blueIcon = new L.Icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 function getDistanceFromLatLonInKm(lat1: any, lon1: any, lat2: any, lon2: any) {
   const R = 6371;
@@ -102,6 +128,31 @@ function HelpDashboard() {
       socket.off("receive-help-request", handleReceiveHelpRequest);
     };
   }, []);
+
+  useEffect(() => {
+  const watchId = navigator.geolocation.watchPosition(
+    (position) => {
+      setHelperLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    },
+    (error) => {
+      console.error("Error getting location:", error);
+      // fallback if location permission denied
+      setHelperLocation(staticHelperLocation);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    }
+  );
+
+  return () => {
+    navigator.geolocation.clearWatch(watchId);
+  };
+}, []);
 
   const handleAccept = async (helpRequestId: any) => {
     try {
@@ -515,43 +566,52 @@ function HelpDashboard() {
 
                 {/* Helper Marker */}
                 {helperLocation && (
-                  <Marker position={[helperLocation.latitude, helperLocation.longitude]}>
-                    <Popup className="custom-popup">
-                      <div className="space-y-1">
-                        <p className="font-semibold">🛟 You (Helper)</p>
-                        <p>{helperName}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                )}
+  <Marker
+    position={[helperLocation.latitude, helperLocation.longitude]}
+    icon={blueIcon}
+  >
+    <Popup className="custom-popup">
+      <div className="space-y-1">
+        <p className="font-semibold">🛟 You (Helper)</p>
+        <p>{helperName || "Current Location"}</p>
+      </div>
+    </Popup>
+  </Marker>
+)}
+
+
 
                 {/* Requester Marker */}
                 {selectedRequest && (
-                  <Marker position={[selectedRequest.location.latitude, selectedRequest.location.longitude]}>
-                    <Popup className="custom-popup">
-                      <div className="space-y-1">
-                        <p className="font-semibold">🆘 Requester</p>
-                        <p>{selectedRequest.requesterName}</p>
-                        <p className="text-sm">Issue: {selectedRequest.issue}</p>
-                        {selectedRequest.description && (
-                          <div className="mt-1 pt-1 border-t border-gray-200">
-                            <p className="text-xs text-gray-500">Description:</p>
-                            <p className="text-xs">{selectedRequest.description}</p>
-                          </div>
-                        )}
-                        {selectedRequest.image && (
-                          <div className="mt-2">
-                            <img 
-                              src={selectedRequest.image} 
-                              alt="Reported issue" 
-                              className="w-full h-auto rounded border border-gray-200"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-                )}
+  <Marker 
+    position={[selectedRequest.location.latitude, selectedRequest.location.longitude]} 
+    icon={greenIcon} // 👈 Add this line
+  >
+    <Popup className="custom-popup">
+      <div className="space-y-1">
+        <p className="font-semibold">🆘 Requester</p>
+        <p>{selectedRequest.requesterName}</p>
+        <p className="text-sm">Issue: {selectedRequest.issue}</p>
+        {selectedRequest.description && (
+          <div className="mt-1 pt-1 border-t border-gray-200">
+            <p className="text-xs text-gray-500">Description:</p>
+            <p className="text-xs">{selectedRequest.description}</p>
+          </div>
+        )}
+        {selectedRequest.image && (
+          <div className="mt-2">
+            <img 
+              src={selectedRequest.image} 
+              alt="Reported issue" 
+              className="w-full h-auto rounded border border-gray-200"
+            />
+          </div>
+        )}
+      </div>
+    </Popup>
+  </Marker>
+)}
+
 
                 {/* Route Polyline */}
                 {routeCoords.length > 0 && (
